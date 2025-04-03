@@ -195,12 +195,13 @@ class Digit:
         self.np: NeoPixel = neopixel
         self.lines = []
         self.screen = []
+        self.pixelfield = []
 
-    def _generate_lines(self, pixelfield) -> list:
+    def _generate_lines(self) -> list:
         for _ in range(16):
             line = []
             for _ in range(16):
-                line.append(pixelfield.pop(0))
+                line.append(self.pixelfield.pop(0))
             self.lines.append(line)
 
     def _line_is_odd(self, line_number: int) -> bool:
@@ -222,7 +223,8 @@ class Digit:
     def show_on_screen(self, pixelfield) -> None:
         self.lines = []
         self.screen = []
-        self._generate_lines(pixelfield)
+        self.pixelfield = pixelfield.copy()
+        self._generate_lines()
         self._reverse_all_odd_lines()
         self._append_all_lines_to_screen()
         self.np.fill([0, 0, 0])
@@ -230,16 +232,21 @@ class Digit:
             if pixel:
                 self.np[i] = [20, 20, 20]
         self.np.write()
-        input()
+
+    def clear(self):
         self.np.fill([0, 0, 0])
         self.np.write()
+        
 
 
 def main():
     neopixel = NeoPixel(machine.Pin(DIGIT_0_PIN), 256)
     digit_0 = Digit(neopixel)
-    for i in range(len(NUMBERS)):
-        digit_0.show_on_screen(NUMBERS[i])
+    while True:
+        for i in range(len(NUMBERS)):
+            digit_0.show_on_screen(NUMBERS[i])
+            time.sleep(0.1)
+            digit_0.clear()
 
 
 if __name__ == '__main__':
