@@ -324,6 +324,15 @@ def touch_pad_detected(touch: TouchPad):
         return True
     return False
 
+
+def set_rtc_with_timekeeper(rtc, timekeeper):
+    print("Read datetime from timekeeper DS3231...")
+    rtc.datetime(timekeeper.get_datetime())
+    print("Set internal RTC datetime to:")
+    print("Year | Month | Day | Weekday | Hour | Minute | Second | Microseconds")
+    print(rtc.datetime())
+
+
 def main():
     touch_pad = TouchPad(Pin(TOUCH_PAD_PIN))
     rtc = RTC()
@@ -339,11 +348,16 @@ def main():
     display = Display(digit_0, digit_1, digit_2)
     display.clear()
 
+    set_rtc_with_timekeeper(rtc, timekeeper)
+
     while True:
         if touch_pad_detected(touch_pad):
             timekeeper.set_by_cli()
             display.clear()
-        print(timekeeper.get_datetime())
+        print('RTC')    
+        print("Year | Month | Day | Weekday | Hour | Minute | Second | Microseconds")
+        print(rtc.datetime())
+        print()
         time.sleep(1)
 
 
