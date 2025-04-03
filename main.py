@@ -6,7 +6,7 @@ from neopixel import NeoPixel
 
 DIGIT_0_PIN = 14
 DIGIT_1_PIN = 26
-DIGIT_2_PIN = 33
+DIGIT_2_PIN = 25
 
 
 NUMBERS = {
@@ -192,6 +192,7 @@ NUMBERS = {
         ],
 }
 
+
 class Digit:
     def __init__(self, neopixel):
         self.np: NeoPixel = neopixel
@@ -268,6 +269,7 @@ class Display:
         self.digit_0.clear()
         self.digit_1.clear()
         self.digit_2.clear()
+
 
 def main():
     neopixel_0 = NeoPixel(machine.Pin(DIGIT_0_PIN), 256)
