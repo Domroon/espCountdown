@@ -222,7 +222,7 @@ class Digit:
             for _ in range(16):
                 self.screen.append(line.pop())
 
-    def show_on_screen(self, pixelfield) -> None:
+    def _show_on_screen(self, pixelfield) -> None:
         self.lines = []
         self.screen = []
         self.pixelfield = pixelfield.copy()
@@ -235,11 +235,39 @@ class Digit:
                 self.np[i] = [10, 10, 10]
         self.np.write()
 
+    def show_number(self, number: int) -> None:
+        self._show_on_screen(NUMBERS[number])
+
     def clear(self):
         self.np.fill([0, 0, 0])
         self.np.write()
         
 
+class Display:
+    def __init__(self, digit_0, digit_1, digit_2):
+        self.digit_0 = digit_0
+        self.digit_1 = digit_1
+        self.digit_2 = digit_2
+
+    def _get_digits(self, number: int) -> list[int, int, int]:
+        digit_2 = number % 10
+        digit_1 = (number % 100 - digit_2) / 10
+        digit_0 = (number - digit_1*10 - digit_2) / 100
+        return [int(digit_0), int(digit_1), int(digit_2)]
+
+    def show_number(self, number: int):
+        if number < 0 or number > 999:
+            raise ValueError('Number too high or low')
+        
+        digits = self._get_digits(number)
+        self.digit_0.show_number(digits[0])
+        self.digit_1.show_number(digits[1])
+        self.digit_2.show_number(digits[2])
+
+    def clear(self):
+        self.digit_0.clear()
+        self.digit_1.clear()
+        self.digit_2.clear()
 
 def main():
     neopixel_0 = NeoPixel(machine.Pin(DIGIT_0_PIN), 256)
@@ -248,15 +276,11 @@ def main():
     digit_0 = Digit(neopixel_0)
     digit_1 = Digit(neopixel_1)
     digit_2 = Digit(neopixel_2)
-    while True:
-        for i in range(len(NUMBERS)):
-            digit_0.show_on_screen(NUMBERS[i])
-            digit_1.show_on_screen(NUMBERS[i])
-            digit_2.show_on_screen(NUMBERS[i])
-            time.sleep(0.1)
-            digit_0.clear()
-            digit_1.clear()
-            digit_2.clear()
+    number = Display(digit_0, digit_1, digit_2)
+    for i in range(10, -1, -1):
+        number.show_number(i)
+        time.sleep(0.5)
+        number.clear()
 
 
 if __name__ == '__main__':
