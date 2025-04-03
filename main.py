@@ -5,6 +5,8 @@ from neopixel import NeoPixel
 
 
 DIGIT_0_PIN = 14
+DIGIT_1_PIN = 26
+DIGIT_2_PIN = 33
 
 
 NUMBERS = {
@@ -230,7 +232,7 @@ class Digit:
         self.np.fill([0, 0, 0])
         for i, pixel in enumerate(self.screen):
             if pixel:
-                self.np[i] = [20, 20, 20]
+                self.np[i] = [10, 10, 10]
         self.np.write()
 
     def clear(self):
@@ -240,13 +242,21 @@ class Digit:
 
 
 def main():
-    neopixel = NeoPixel(machine.Pin(DIGIT_0_PIN), 256)
-    digit_0 = Digit(neopixel)
+    neopixel_0 = NeoPixel(machine.Pin(DIGIT_0_PIN), 256)
+    neopixel_1 = NeoPixel(machine.Pin(DIGIT_1_PIN), 256)
+    neopixel_2 = NeoPixel(machine.Pin(DIGIT_2_PIN), 256)
+    digit_0 = Digit(neopixel_0)
+    digit_1 = Digit(neopixel_1)
+    digit_2 = Digit(neopixel_2)
     while True:
         for i in range(len(NUMBERS)):
             digit_0.show_on_screen(NUMBERS[i])
+            digit_1.show_on_screen(NUMBERS[i])
+            digit_2.show_on_screen(NUMBERS[i])
             time.sleep(0.1)
             digit_0.clear()
+            digit_1.clear()
+            digit_2.clear()
 
 
 if __name__ == '__main__':
