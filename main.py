@@ -1,12 +1,18 @@
-import machine
+from machine import RTC, SoftI2C, TouchPad, Pin
 import time
 
 from neopixel import NeoPixel
+
+from ds3231 import DS3231
+
 
 
 DIGIT_0_PIN = 14
 DIGIT_1_PIN = 26
 DIGIT_2_PIN = 25
+TOUCH_PAD_PIN = 27
+SDA_PIN = 32
+SCL_PIN = 33
 
 
 NUMBERS = {
@@ -271,18 +277,74 @@ class Display:
         self.digit_2.clear()
 
 
+class Timekeeper():
+    def __init__(self, ds3231, rtc):
+        self.ds3231 = ds3231
+        self.rtc = rtc
+        
+    def set_by_cli(self):
+        print("You are in the clock settings. Do you want to change the time (y/n)?")
+        while True:
+            user_input = input()
+            if user_input == "y":
+                year = int(input("Enter Year: "))
+                month = int(input("Enter Month: "))
+                mday = int(input("Enter Day: "))
+                print("Attention, if you are in summer time, subtract one hour")
+                hour = int(input("Enter Hour (24h format): "))
+                minute = int(input("Enter Minute: "))
+                second = int(input("Enter Second: ")) # Optional
+                input("Press Enter to set the Time...")
+
+                ds3231_datetime = (year, month, mday, hour, minute, second, 0)
+                self.ds3231.datetime(ds3231_datetime)
+                datetime = (year, month, mday, 0, hour, minute, second, 0)
+                self.rtc.datetime(datetime)
+                break
+            elif user_input == "n":
+                print("no")
+                break
+            else:
+                print("Wrong Input. Enter 'y' for yes ot 'n' for no.")
+
+    def set_datetime(self, datetime):
+        self.ds3231.datetime(datetime)
+
+    def get_datetime(self):
+        return self.ds3231.datetime()
+    
+    def is_time_lost(self):
+        if(self.get_datetime()[0] == 2000):
+            return True
+        return False
+
+
+def touch_pad_detected(touch: TouchPad):
+    if touch.read() <= 100:
+        return True
+    return False
+
 def main():
-    neopixel_0 = NeoPixel(machine.Pin(DIGIT_0_PIN), 256)
-    neopixel_1 = NeoPixel(machine.Pin(DIGIT_1_PIN), 256)
-    neopixel_2 = NeoPixel(machine.Pin(DIGIT_2_PIN), 256)
+    touch_pad = TouchPad(Pin(TOUCH_PAD_PIN))
+    rtc = RTC()
+    i2c = SoftI2C(sda=Pin(SDA_PIN), scl=Pin(SCL_PIN))
+    ds3231 = DS3231(i2c)
+    timekeeper = Timekeeper(ds3231, rtc)
+    neopixel_0 = NeoPixel(Pin(DIGIT_0_PIN), 256)
+    neopixel_1 = NeoPixel(Pin(DIGIT_1_PIN), 256)
+    neopixel_2 = NeoPixel(Pin(DIGIT_2_PIN), 256)
     digit_0 = Digit(neopixel_0)
     digit_1 = Digit(neopixel_1)
     digit_2 = Digit(neopixel_2)
-    number = Display(digit_0, digit_1, digit_2)
-    for i in range(10, -1, -1):
-        number.show_number(i)
-        time.sleep(0.5)
-        number.clear()
+    display = Display(digit_0, digit_1, digit_2)
+    display.clear()
+
+    while True:
+        if touch_pad_detected(touch_pad):
+            timekeeper.set_by_cli()
+            display.clear()
+        print(timekeeper.get_datetime())
+        time.sleep(1)
 
 
 if __name__ == '__main__':
