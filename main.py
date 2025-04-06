@@ -381,7 +381,7 @@ def main():
 
     set_rtc_with_timekeeper(rtc, timekeeper)
 
-    displayed_days = 0
+    displayed_days = 1000
 
     while True:
         if touch_pad_detected(touch_pad):
@@ -390,8 +390,12 @@ def main():
         
         show_datetime(rtc)
 
-        current_days_until_year_end = count_calculator.get_days_until_year_end()
+        current_days_until_year_end = count_calculator.get_days_until_year_end() + 1
+        print('current_days_until_year_end: ', current_days_until_year_end)
+        print('displayed_days: ', displayed_days)
         if current_days_until_year_end != displayed_days:
+            if rtc.datetime()[0] >= 2026:
+                current_days_until_year_end = 0
             display.clear()
             display.show_number(current_days_until_year_end)
             displayed_days = current_days_until_year_end
