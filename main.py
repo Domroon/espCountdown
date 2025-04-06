@@ -1,4 +1,4 @@
-from machine import RTC, SoftI2C, TouchPad, Pin
+from machine import RTC, SoftI2C, TouchPad, Pin, Timer
 import time
 
 from neopixel import NeoPixel
@@ -340,6 +340,53 @@ class CountCalculator:
     def get_days_until_year_end(self):
         days_since_year_begin = self._calculate_days_since_years_begin()
         return self.MAX_DAYS_OF_YEAR - days_since_year_begin
+
+
+# add the the same functionality like the machine.RTC class
+class RTCmock:
+    def __init__(self, year, month, day, weekday, hour, minute, second, microsecond):
+        self.year = year
+        self.month = month
+        self.day = day
+        self.hour = hour
+        self.day = day
+        self.weekday = weekday
+        self.hour = hour
+        self.minute = minute
+        self.second = second
+        self.microsecond = microsecond
+        self.timer = Timer(0)
+        self.speed = 1
+
+    def start(self):
+        self.timer.init(period=int(self.speed*1000), callback=self._tick)
+
+    def change_speed(self, multiplier):
+        self.speed = 1 / multiplier
+
+    def _tick(self, timer_obj):
+        self.second = self.second + 1
+        if self.second > 59:
+            self.minute = self.minute + 1
+            self.second = 0
+        if self.minute > 59:
+            self.hour = self.hour + 1
+            self.minute = 0
+        if self.hour > 23:
+            self.hour = 0
+        # print(self.hour, ":", self.minute, ":", self.second)
+
+    def datetime(self, datetime_data=None):
+        if datetime_data == None:
+            return (self.year, self.month, self.day, self.weekday, self.hour, self.minute, self.second, self.microsecond)
+        self.year = datetime_data[0]
+        self.month = datetime_data[1]
+        self.day = datetime_data[2]
+        self.weekday = datetime_data[3]
+        self.hour = datetime_data[4]
+        self.minute = datetime_data[5]
+        self.second = datetime_data[6]
+        self.microseconds = datetime_data[7]
 
 
 def touch_pad_detected(touch: TouchPad):
