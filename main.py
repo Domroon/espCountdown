@@ -6,7 +6,6 @@ from neopixel import NeoPixel
 from ds3231 import DS3231
 
 
-
 DIGIT_0_PIN = 14
 DIGIT_1_PIN = 26
 DIGIT_2_PIN = 25
@@ -319,6 +318,30 @@ class Timekeeper():
         return False
 
 
+class CountCalculator:
+    def __init__(self, rtc):
+        self.rtc = rtc
+        self.MAX_DAYS_OF_YEAR = 365
+        self.MAX_MONTH_DAYS = [
+            31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+        ]
+
+    def _sum_month_days(self):
+        month = self.rtc.datetime()[1]
+        sum_last_months_days = 0
+        for i in range(0, month-1):
+            sum_last_months_days = sum_last_months_days + self.MAX_MONTH_DAYS[i]
+        return sum_last_months_days
+
+    def _calculate_days_since_years_begin(self):
+        sum_last_months_days = self._sum_month_days()
+        return sum_last_months_days + self.rtc.datetime()[2]
+    
+    def get_days_until_year_end(self):
+        days_since_year_begin = self._calculate_days_since_years_begin()
+        return self.MAX_DAYS_OF_YEAR - days_since_year_begin
+
+
 def touch_pad_detected(touch: TouchPad):
     if touch.read() <= 100:
         return True
@@ -331,6 +354,13 @@ def set_rtc_with_timekeeper(rtc, timekeeper):
     print("Set internal RTC datetime to:")
     print("Year | Month | Day | Weekday | Hour | Minute | Second | Microseconds")
     print(rtc.datetime())
+
+
+def show_datetime(rtc):
+    print('RTC')    
+    print("Year | Month | Day | Weekday | Hour | Minute | Second | Microseconds")
+    print(rtc.datetime())
+    print()
 
 
 def main():
@@ -346,18 +376,26 @@ def main():
     digit_1 = Digit(neopixel_1)
     digit_2 = Digit(neopixel_2)
     display = Display(digit_0, digit_1, digit_2)
+    count_calculator = CountCalculator(rtc)
     display.clear()
 
     set_rtc_with_timekeeper(rtc, timekeeper)
+
+    displayed_days = 0
 
     while True:
         if touch_pad_detected(touch_pad):
             timekeeper.set_by_cli()
             display.clear()
-        print('RTC')    
-        print("Year | Month | Day | Weekday | Hour | Minute | Second | Microseconds")
-        print(rtc.datetime())
-        print()
+        
+        show_datetime(rtc)
+
+        current_days_until_year_end = count_calculator.get_days_until_year_end()
+        if current_days_until_year_end != displayed_days:
+            display.clear()
+            display.show_number(current_days_until_year_end)
+            displayed_days = current_days_until_year_end
+        
         time.sleep(1)
 
 
