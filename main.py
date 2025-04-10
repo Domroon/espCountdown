@@ -238,7 +238,7 @@ class Digit:
         self.np.fill([0, 0, 0])
         for i, pixel in enumerate(self.screen):
             if pixel:
-                self.np[i] = [25, 25, 25]
+                self.np[i] = [25, 0, 0]
         self.np.write()
 
     def show_number(self, number: int) -> None:
